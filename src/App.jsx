@@ -1,78 +1,37 @@
-import React, {Component, createContext} from 'react';
+import React, {Component, lazy, Suspense} from 'react';
 import './App.css';
 
-// 创建Context实例
-const BatteryContext = createContext(90);
-const OnlineContext = createContext(false);
+// 直接打包到main.chunk.js 也就是说打包到主包中
+// import About from "./About";
 
-// 最底层组件
-// class Leaf extends Component {
-//   render() {
-//     return (
-//       // Context消费者
-//       <BatteryContext.Consumer>
-//         {
-//           battery => (
-//             <OnlineContext.Consumer>
-//               {
-//                 online => <h1>Battery: {battery}, Online: {String(online)}</h1>
-//               }
-//             </OnlineContext.Consumer>
-//           )
-//         }
-//       </BatteryContext.Consumer>
-//     )
-//   }
-// }
+// 懒加载 /*webpackChunkName:"about"*/ 是对懒加载的包的重命名
+const About = lazy(() => import(/*webpackChunkName:"about"*/'./About.jsx'));
 
-// 最底层组件
-class Leaf extends Component {
-  // 定义contextType可以直接访问this.context而不使用Consumer
-  static contextType = BatteryContext;
+// ErrorBoundary
+// componentDidCatch
 
-  render() {
-    const battery = this.context;
-
-    return (
-      // Context消费者
-      <h1>Battery: {battery}</h1>
-    )
-  }
-}
-
-// 中间组件
-class Middle extends Component {
-  render() {
-    return <Leaf/>
-  }
-}
-
-// 最上层组件
 class App extends Component {
   state = {
-    online: false,
-    battery: 60
+    hasError: false,
   };
 
-  render() {
-    const {battery, online} = this.state;
+  static getDerivedStateFromError() {
+    return {
+      hasError: true
+    }
+  }
 
+  render() {
+    if (this.state.hasError) {
+      return <div>hasError</div>
+    }
     return (
-      // Context提供者
-      <BatteryContext.Provider value={battery}>
-        <OnlineContext.Provider value={online}>
-          <button
-            type="button"
-            onClick={() => this.setState({battery: battery - 1})}>Press
-          </button>
-          <button
-            type="button"
-            onClick={() => this.setState({online: !online})}>Switch
-          </button>
-          <Middle/>
-        </OnlineContext.Provider>
-      </BatteryContext.Provider>
-    );
+      <div>
+        <Suspense fallback={<div>loading</div>}>
+          <About/>
+        </Suspense>
+      </div>
+    )
   }
 }
 
