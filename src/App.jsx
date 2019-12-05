@@ -1,38 +1,84 @@
-import React, {Component, lazy, Suspense} from 'react';
+import React, {Component, useState, useEffect} from 'react';
 import './App.css';
 
-// 直接打包到main.chunk.js 也就是说打包到主包中
-// import About from "./About";
-
-// 懒加载 /*webpackChunkName:"about"*/ 是对懒加载的包的重命名
-const About = lazy(() => import(/*webpackChunkName:"about"*/'./About.jsx'));
-
-// ErrorBoundary
-// componentDidCatch
-
-class App extends Component {
+class App2 extends Component {
   state = {
-    hasError: false,
+    count: 0,
+    size: {
+      width: document.documentElement.clientWidth,
+      height: document.documentElement.clientHeight
+    }
   };
 
-  static getDerivedStateFromError() {
-    return {
-      hasError: true
-    }
+  onResize = () => {
+    this.setState({
+      size: {
+        width: document.documentElement.clientWidth,
+        height: document.documentElement.clientHeight
+      }
+    })
+  };
+
+  componentDidMount() {
+    document.title = this.state.count;
+
+    window.addEventListener('resize', this.onResize, false)
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize, false)
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    document.title = this.state.count;
   }
 
   render() {
-    if (this.state.hasError) {
-      return <div>hasError</div>
-    }
+    const {count, size} = this.state;
     return (
-      <div>
-        <Suspense fallback={<div>loading</div>}>
-          <About/>
-        </Suspense>
-      </div>
+      <button type="button" onClick={() => {
+        this.setState({count: count + 1})
+      }}>click {count} size {size.width}x{size.height}</button>
     )
   }
 }
 
+function App(props) {
+  const [count, setCount] = useState(0);
+  const [size, setSize] = useState({
+    width: document.documentElement.clientWidth,
+    height: document.documentElement.clientHeight
+  });
+
+  const onResize = () => {
+    setSize({
+      width: document.documentElement.clientWidth,
+      height: document.documentElement.clientHeight
+    })
+  };
+
+  // count和size每次的改变都会触发这个事件
+  useEffect(() => {
+    document.title = count + '';
+  });
+
+  useEffect(() => {
+    // componentDidMount和componentDidUpdate 触发
+    window.addEventListener('resize', onResize, false);
+
+    // componentWillUnMount触发
+    return () => {
+      window.removeEventListener('resize', onResize, false);
+    }
+    // 第三参数决定是否更新
+  }, []);
+
+  return (
+    <button type="button" onClick={() => {
+      setCount(count + 1)
+    }}>click {count} size {size.width}x{size.height}</button>
+  )
+}
+
 export default App;
+
