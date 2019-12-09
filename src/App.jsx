@@ -1,82 +1,58 @@
-import React, {Component, useState, useEffect} from 'react';
-import './App.css';
+import React, {useState, useMemo, memo, useCallback} from 'react';
 
-class App2 extends Component {
-  state = {
-    count: 0,
-    size: {
-      width: document.documentElement.clientWidth,
-      height: document.documentElement.clientHeight
-    }
-  };
+const Counter = memo(function Counter(props) {
+  console.log('Counter render');
+  return (
+    <h1 onClick={props.onClick}>{props.count}</h1>
+  )
+});
 
-  onResize = () => {
-    this.setState({
-      size: {
-        width: document.documentElement.clientWidth,
-        height: document.documentElement.clientHeight
-      }
-    })
-  };
-
-  componentDidMount() {
-    document.title = this.state.count;
-
-    window.addEventListener('resize', this.onResize, false)
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.onResize, false)
-  }
-
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    document.title = this.state.count;
-  }
-
-  render() {
-    const {count, size} = this.state;
-    return (
-      <button type="button" onClick={() => {
-        this.setState({count: count + 1})
-      }}>click {count} size {size.width}x{size.height}</button>
-    )
-  }
-}
-
-function App(props) {
+// App 主组件
+function App() {
   const [count, setCount] = useState(0);
-  const [size, setSize] = useState({
-    width: document.documentElement.clientWidth,
-    height: document.documentElement.clientHeight
-  });
+  const [clickCount, setClickCount] = useState(0);
 
-  const onResize = () => {
-    setSize({
-      width: document.documentElement.clientWidth,
-      height: document.documentElement.clientHeight
-    })
-  };
+  const double = useMemo(() => {
+    return count * 2;
+  }, [count === 3]);
 
-  // count和size每次的改变都会触发这个事件
-  useEffect(() => {
-    document.title = count + '';
-  });
+  // 写法一, 缺陷是每次点击button都会渲染自组件Counter
+  /*const onClick = () => {
+    console.log('Click');
+  }*/
 
-  useEffect(() => {
-    // componentDidMount和componentDidUpdate 触发
-    window.addEventListener('resize', onResize, false);
-
-    // componentWillUnMount触发
+  // 优化一, 这样保证每次点击时不会渲染自组件Counter
+  /*const onClick = useMemo(() => {
     return () => {
-      window.removeEventListener('resize', onResize, false);
+      console.log('Click')
     }
-    // 第三参数决定是否更新
+  }, []);*/
+
+  // 优化二, 这样保证每次点击时不会渲染自组件Counter
+  /*const onClick = useCallback(() => {
+    console.log('Click');
+    setClickCount(clickCount + 1);
+  }, [clickCount]);*/
+
+  // 优化三, 这样保证每次点击时不会渲染自组件Counter
+  const onClick = useCallback(() => {
+    console.log('Click');
+    setClickCount((clickCount) => clickCount + 1);
   }, []);
 
+  // useMemo(() => fn) 等价于 userCallback(fn)
+
   return (
-    <button type="button" onClick={() => {
-      setCount(count + 1)
-    }}>click {count} size {size.width}x{size.height}</button>
+    <div>
+      <button
+        type='button'
+        onClick={() => {
+          setCount(count + 1)
+        }}>
+        Click ({count}) double: ({double})
+      </button>
+      <Counter count={double} onClick={onClick}/>
+    </div>
   )
 }
 
