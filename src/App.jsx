@@ -1,46 +1,34 @@
-import React, {useState, useMemo, memo, useCallback} from 'react';
+import React, {PureComponent ,useState , useRef} from 'react';
 
-const Counter = memo(function Counter(props) {
-  console.log('Counter render');
-  return (
-    <h1 onClick={props.onClick}>{props.count}</h1>
-  )
-});
+
+class Counter extends PureComponent{
+  state = {
+    name: 'GeniusLuo'
+  };
+
+  speak() {
+    console.log('speak');
+    console.log(this.state.name)
+  }
+
+  render() {
+    const {props} = this;
+    return (
+      <h1 onClick={props.onClick}>{props.count}</h1>
+    );
+  }
+}
 
 // App 主组件
 function App() {
   const [count, setCount] = useState(0);
-  const [clickCount, setClickCount] = useState(0);
 
-  const double = useMemo(() => {
-    return count * 2;
-  }, [count === 3]);
+  const onClick = () => {
+    // 可以共享组件counter上的属性和方法
+    counterRef.current.speak()
+  };
 
-  // 写法一, 缺陷是每次点击button都会渲染自组件Counter
-  /*const onClick = () => {
-    console.log('Click');
-  }*/
-
-  // 优化一, 这样保证每次点击时不会渲染自组件Counter
-  /*const onClick = useMemo(() => {
-    return () => {
-      console.log('Click')
-    }
-  }, []);*/
-
-  // 优化二, 这样保证每次点击时不会渲染自组件Counter
-  /*const onClick = useCallback(() => {
-    console.log('Click');
-    setClickCount(clickCount + 1);
-  }, [clickCount]);*/
-
-  // 优化三, 这样保证每次点击时不会渲染自组件Counter
-  const onClick = useCallback(() => {
-    console.log('Click');
-    setClickCount((clickCount) => clickCount + 1);
-  }, []);
-
-  // useMemo(() => fn) 等价于 userCallback(fn)
+  const counterRef = useRef();
 
   return (
     <div>
@@ -49,9 +37,9 @@ function App() {
         onClick={() => {
           setCount(count + 1)
         }}>
-        Click ({count}) double: ({double})
+        Click ({count})
       </button>
-      <Counter count={double} onClick={onClick}/>
+      <Counter ref={counterRef} onClick={onClick} count={count}/>
     </div>
   )
 }
