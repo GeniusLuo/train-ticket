@@ -6,15 +6,10 @@ class Counter extends PureComponent{
     name: 'GeniusLuo'
   };
 
-  speak() {
-    console.log('speak');
-    console.log(this.state.name)
-  }
-
   render() {
     const {props} = this;
     return (
-      <h1 onClick={props.onClick}>{props.count}</h1>
+      <h1>{props.count}</h1>
     );
   }
 }
